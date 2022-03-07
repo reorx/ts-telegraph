@@ -1,17 +1,10 @@
 import * as superagent from 'superagent'
+import {Account, PageList, Page} from './types'
 
 const constants = {
   API_URL: 'https://api.telegra.ph/',
 }
 
-interface Account {
-  access_token: string
-  short_name: string
-  author_name: string
-  author_url: string
-  auth_url: string
-  page_count: string
-}
 
 export default class TelegraphClient {
   accessToken: string;
@@ -23,6 +16,9 @@ export default class TelegraphClient {
   async request(method: string, path: string, data: any = {}): Promise<any> {
     let req = superagent(method, `${constants.API_URL}${path}`)
     if (Object.keys(data).length > 0) {
+      if (this.accessToken) {
+        data['access_token'] = this.accessToken
+      }
       req = req.send(data)
     }
 
@@ -46,5 +42,13 @@ export default class TelegraphClient {
       author_name: authorName,
     })
     return data as Account
+  }
+
+  async getPageList(offset: number = 0, limit: number = 50): Promise<PageList> {
+    const data = await this.request('POST', `/getPageList`, {
+      offset,
+      limit,
+    })
+    return data as PageList
   }
 }
